@@ -9,8 +9,11 @@ public class Enemy : MonoBehaviour {
     [SerializeField] GameObject projectile;
     [SerializeField] float projectileSpeed = 10f;
 
+    private Vector2 velocity;
+
     // Start is called before the first frame update
     void Start() {
+        velocity = new Vector2(0, -projectileSpeed);
         shotCounter = Random.Range(minTimeBetweenShots, maxTimeBetweenShots);
     }
 
@@ -29,25 +32,31 @@ public class Enemy : MonoBehaviour {
     }
 
     private void Fire() {
-        GameObject laser = Instantiate(
-            projectile,
-            transform.position,
-            Quaternion.identity) as GameObject;
+        Player player = FindObjectOfType<Player>();
 
-        //Player player = FindObjectOfType<Player>();
+        if (player != null) {
 
-        //Vector2 velocity = player.transform.position - transform.position;
+            GameObject laser = Instantiate(
+                projectile,
+                transform.position,
+                Quaternion.identity) as GameObject;
 
-        laser.GetComponent<Rigidbody2D>().velocity = new Vector2(0, -projectileSpeed);
+            Vector2 velocity = player.transform.position - transform.position;
+
+            laser.GetComponent<Rigidbody2D>().velocity = velocity;
+            //laser.GetComponent<Rigidbody2D>().velocity = new Vector2(0, -projectileSpeed);
+        }
+
     }
 
     private void OnTriggerEnter2D(Collider2D collision) {
+        DamageDealer damageDealer = collision.gameObject.GetComponent<DamageDealer>();
+        if (!damageDealer) { return; }
         ProcessHit(collision.gameObject.GetComponent<DamageDealer>());
     }
 
     private void ProcessHit(DamageDealer damageDealer) {
         health -= damageDealer.GetDamage();
-
         damageDealer.Hit();
 
         if (health <= 0) {
